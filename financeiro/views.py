@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from .forms import CadastroForm, ProdutoModelForm
+from .models import Produto
 from django.contrib import messages # para adcionar mensagens no contexto da nossa pagina
+from django.shortcuts import redirect
 
 
 # Create your views here.
 
 def index(request):
-    return render (request, 'index.html')
+    context = {
+        'produto': Produto.objects.all()
+    }
+    return render (request, 'index.html', context)
 
 
 
@@ -48,21 +53,32 @@ def promocao(request):
 
 
 
-def produtos(request):
-    if str(request.method) == 'POST':
-        form = ProdutoModelForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            
-            messages.success(request, 'Produto salvo com sucesso.')
-            form = ProdutoModelForm()
-        else:
-            messages.error(request, 'Erro ao salvar produto.')
-    else:
-        form = ProdutoModelForm()
-    context = {
-        'form': form
-    }
 
-    return render(request, 'produtos.html', context)
+def produtos(request):
+    if str(request.user) != 'AnonymousUser':
+        if str(request.method) == 'POST':
+            form = ProdutoModelForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+
+                messages.success(request, 'Produto salvo com sucesso.')
+                form = ProdutoModelForm()
+            else:
+                messages.error(request, 'Erro ao salvar produto.')
+        else:
+            form = ProdutoModelForm()
+        context = {
+            'form': form
+        }
+
+        return render(request, 'produtos.html', context)
+    else:
+        return redirect('index')
+
+
+def produto_cliente(request):
+    context = {
+        'produto': Produto.objects.all()
+    }
+    return render (request, 'produto_cliente.html', context)
 
